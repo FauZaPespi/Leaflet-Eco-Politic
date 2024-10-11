@@ -61,3 +61,34 @@ body {
     outline: none;
     transition: background 0.3s ease;
 }
+
+.yearValue {
+    font-family: sans-serif;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+* {
+    user-select: none;
+}
+
+.leaflet-popup-content p {
+    user-select: text;
+}
+
+.leaflet-popup-content p::selection {
+    background-color: rgba(172, 202, 202, 0.39); /* Keeps the background */
+    padding: 5px;
+    border-radius: 50%;
+}
+.highlight {
+    background-color: rgba(172, 202, 202, 0.39);
+    border-radius: 20px;
+}
