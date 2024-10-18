@@ -8,7 +8,7 @@ const economicSystemColors = {
     'Fascism': '#d62728',
     'Monarchie': '#310d94',
     'Dictature': '#FF6075',
-    'Mixed Economy': '#9467bd' // Default color
+    'Mixed Economy': '#9467bd' 
 };
 
 L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`, {
@@ -20,12 +20,11 @@ L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}
 }).addTo(map);
 
 let economicData = {};
-let geojson; // Declare geojson layer globally
-let additionalGeoJSONLayer = null; // Store the additional GeoJSON layer
+let geojson; 
+let additionalGeoJSONLayer = null; 
 
-const availableYears = [1900, 1925, 1950, 1970, 2024]; // List of years with available data
+const availableYears = [1900, 1925, 1950, 1970, 2024]; 
 
-// Function to find the nearest available year
 function getNearestYear(year) {
     let nearestYear = availableYears.reduce((prev, curr) => {
         return (Math.abs(curr - year) < Math.abs(prev - year) ? curr : prev);
@@ -49,25 +48,24 @@ function fetchEconomicData(year) {
         })
         .then(data => {
             economicData = data;
-            
-            // Update styles for the main geojson layer
+
+        
             geojson.setStyle(getStyle);
             geojson.eachLayer(layer => {
-                layer.unbindPopup(); // Unbind existing popups
-                popup(layer.feature, layer); // Rebind popups with updated data
+                layer.unbindPopup(); 
+                popup(layer.feature, layer); 
             });
-            
+
         })
         .catch(error => {
             console.error('Error fetching economic data:', error);
         });
 }
 
-// Function to style each country based on its economic data
 function getStyle(feature) {
     const countryName = feature.properties.text;
-    const economicSystem = economicData[countryName] || 'Mixed Economy'; // Get the system name
-    const color = economicSystemColors[economicSystem] || '#9467bd'; // Get the corresponding color
+    const economicSystem = economicData[countryName] || 'Mixed Economy';
+    const color = economicSystemColors[economicSystem] || '#9467bd'; 
 
     return {
         weight: 0.4,
@@ -78,15 +76,12 @@ function getStyle(feature) {
     };
 }
 
-// Function to create popups with economic system info
 function popup(feature, layer) {
     const countryName = feature.properties.text;
-    const economicSystem = economicData[countryName] || 'Mixed Economy'; // Get the system name
-
-    layer.bindPopup(`<h3>${countryName}</h3><p>Economic System: ${economicSystem}</p>`); // Display the correct economic system
+    const economicSystem = economicData[countryName] || 'Mixed Economy'; 
+    layer.bindPopup(`<h3>${countryName}</h3><p>Economic System: ${economicSystem}</p>`); 
 }
 
-// Fetch and load GeoJSON data for the main dataset
 geojson = new L.GeoJSON.AJAX(`https://api.maptiler.com/data/13a81e89-4223-40dc-bcb9-407bf4cf1dd8/features.json?key=${key}`, {
     onEachFeature: function (feature, layer) {
         popup(feature, layer);
@@ -95,15 +90,14 @@ geojson = new L.GeoJSON.AJAX(`https://api.maptiler.com/data/13a81e89-4223-40dc-b
 }).addTo(map);
 
 
-// Initialize the slider and display year information
 document.addEventListener('DOMContentLoaded', () => {
     const yearSlider = document.getElementById('inputRangeYear');
     const yearDisplay = document.createElement('div');
 
-    fetchEconomicData(2024); // Initial load for 2024
+    fetchEconomicData(2024); 
 
     yearDisplay.style.position = 'absolute';
-    yearDisplay.style.top = '60px';
+    yearDisplay.style.top = '87px';
     yearDisplay.style.left = '50%';
     yearDisplay.style.transform = 'translateX(-50%)';
     yearDisplay.style.fontSize = '18px';
@@ -117,10 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentValue = targetValue;
     let finalValue = 0;
 
-    // Damping factor for smooth slider movement
+
     const dampingFactor = 0.1;
 
-    // Function to update the slider animation
+
     function updateSlider() {
         currentValue += (targetValue - currentValue) * dampingFactor;
 
@@ -132,11 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(updateSlider);
         }
 
-        // Fetch data based on the current year from the slider
+
         fetchEconomicData(yearDisplay.innerText);
     }
 
-    // Event listener for input event to trigger slider update
+
     yearSlider.addEventListener('input', () => {
         targetValue = parseInt(yearSlider.value);
         yearDisplay.innerText = targetValue;
@@ -147,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Event listener for change event when the slider stops
+
     yearSlider.addEventListener('change', () => {
         targetValue = parseInt(yearSlider.value);
         yearDisplay.innerText = targetValue;

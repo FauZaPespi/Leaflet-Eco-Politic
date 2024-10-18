@@ -8,6 +8,7 @@ body {
     top: 0;
     bottom: 0;
     width: 100%;
+    opacity: 1;
 }
 
 .legend {
@@ -65,7 +66,7 @@ body {
 .yearValue {
     font-family: sans-serif;
     position: absolute;
-    top: 20px;
+    top: 87px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -91,4 +92,38 @@ body {
 .highlight {
     background-color: rgba(172, 202, 202, 0.39);
     border-radius: 20px;
+}
+.askWrong {
+    position: absolute;
+    bottom: 20px;
+    left: 10%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    height: 18vh;
+}
+.askWrong form {
+    display: flex;
+    flex-direction: column;
+    width: 12.5vw;
+    margin: auto;
+}
+.askWrong form select, .askWrong form input{
+    width: 12vw;
+        border: #000 solid 1px;
+    margin: 7px auto;
+    border-radius: 5px;
+}
+.askWrong form button {
+    margin: 6vh auto;
+    border: #000 solid 1px;
+    border-radius: 5px;
+    transition: all 150ms;
+}
+.askWrong form button:hover {
+    background-color: rgb(127, 255, 155);
 }
