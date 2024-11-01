@@ -1,3 +1,7 @@
+html {
+    overflow: hidden;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -11,17 +15,35 @@ body {
     opacity: 1;
 }
 
+
 .legend {
-    background-color: #000;
+    background-color: rgba(255, 255, 255, 0.151);
     border-radius: 3px;
     bottom: 30px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    color: #080808;
     font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
     padding: 10px;
     position: absolute;
     right: 10px;
     z-index: 800;
+}
+
+.backgroundBlurlegend {
+    background-color: rgba(255, 255, 255, 0.151);
+    border-radius: 3px;
+    bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    color: #080808;
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    padding: 10px;
+    position: absolute;
+    right: 10px;
+    z-index: 800;
+    height: 149px;
+    width: 108px;
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
 }
 
 .legend h4 {
@@ -38,7 +60,7 @@ body {
 
 .Year-Selector {
     position: absolute;
-    top: 20px;
+    top: 60px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -47,6 +69,7 @@ body {
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     width: 300px;
+    margin-bottom: 10px;
 }
 
 .Year-Selector label {
@@ -55,18 +78,93 @@ body {
 }
 
 .Year-Selector input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    height: 8px;
-    background: #ddd;
-    border-radius: 5px;
+    height: 10px;
+    background: linear-gradient(4deg, #3498db -10%, #ccc 62%);
+    border-radius: 4px;
     outline: none;
-    transition: background 0.3s ease;
+    cursor: pointer;
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
 }
+
+.Year-Selector input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(4deg, #3498db -10%, #ccc 62%);
+    border-radius: 5px;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
+}
+
+.Year-Selector input[type="range"]:hover::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #2980b9 0%, #ccc 100%);
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
+}
+
+.Year-Selector input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background-color: #3498db;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
+}
+
+.Year-Selector input[type="range"]:hover::-webkit-slider-thumb {
+    background-color: #2980b9;
+    transform: scale(1.1);
+    cursor: grab;
+}
+
+.Year-Selector input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(90deg, #3498db 0%, #ddd 100%);
+    border-radius: 5px;
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
+}
+
+.Year-Selector input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background-color: #3498db;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+    transition: all 340ms cubic-bezier(0.25, 0.1, 1, -1.31);
+}
+
+.Year-Selector input[type="range"]:hover::-moz-range-thumb {
+    background-color: #2980b9;
+    transform: scale(1.4);
+}
+
+.Year-Selector input[type="range"]:focus {
+    outline: none;
+}
+
+.Year-Selector input[type="range"]::-webkit-slider-thumb:active {
+    background-color: #1a6e9d;
+    transform: scale(1.2);
+    cursor: grabbing;
+}
+
+.Year-Selector input[type="range"]::-moz-range-thumb:active {
+    background-color: #1a6e9d;
+    transform: scale(1.2);
+}
+
+
 
 .yearValue {
     font-family: sans-serif;
     position: absolute;
-    top: 87px;
+    top: 107px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -85,45 +183,146 @@ body {
 }
 
 .leaflet-popup-content p::selection {
-    background-color: rgba(172, 202, 202, 0.39); /* Keeps the background */
+    background-color: rgba(172, 202, 202, 0.39);
     padding: 5px;
     border-radius: 50%;
 }
+
 .highlight {
     background-color: rgba(172, 202, 202, 0.39);
     border-radius: 20px;
 }
+
 .askWrong {
     position: absolute;
     bottom: 20px;
-    left: 10%;
+    left: 16vw;
     transform: translateX(-50%);
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1001;
+    background-color: rgba(255, 255, 255, 0.151);
     border-radius: 5px;
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     width: 300px;
     height: 18vh;
 }
+
+.backgroundBlur {
+    position: absolute;
+    bottom: 20px;
+    left: 16vw;
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    width: 316px;
+    height: 20.099vh;
+}
+
+input[type="text"],
+select {
+    padding: 5px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+input[type="text"]::placeholder {
+    color: rgba(85, 67, 67, 0.5);
+}
+
+button {
+    width: 12vw;
+    height: 36px;
+    margin: 0vh auto;
+    padding: 8px 5px;
+    border: none;
+    border-radius: 8px;
+    background: #007BFF;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+.thanksU {
+    position: absolute;
+    top: 40px;
+    right: 5px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 170px;
+    height: 2vh;
+}
+
+.updateMessage {
+    position: fixed;
+    z-index: 2000;
+    font-family: sans-serif;
+    background-color: rgba(255, 255, 255, 0.8);
+    width: 100%;
+    text-align: center;
+    height: 4vh;
+    overflow: hidden;
+    top: 0;
+}
+
+.updateMessage .scrollingText {
+    margin-top: 6.7px;
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll 12s cubic-bezier(.14, .38, .79, .45) infinite;
+    font-size: 1.2em;
+}
+
+
+@keyframes scroll {
+    0% {
+        transform: translateX(150%);
+    }
+
+    100% {
+        transform: translateX(-150%);
+    }
+}
+
+
 .askWrong form {
     display: flex;
     flex-direction: column;
     width: 12.5vw;
     margin: auto;
 }
-.askWrong form select, .askWrong form input{
+
+.askWrong form select,
+.askWrong form input {
     width: 12vw;
-        border: #000 solid 1px;
+    border: #000 solid 1px;
     margin: 7px auto;
     border-radius: 5px;
 }
+
 .askWrong form button {
-    margin: 6vh auto;
+    margin: 0vh auto;
     border: #000 solid 1px;
     border-radius: 5px;
     transition: all 150ms;
-}
-.askWrong form button:hover {
-    background-color: rgb(127, 255, 155);
 }
