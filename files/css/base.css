@@ -285,6 +285,10 @@ button:hover {
     top: 0;
 }
 
+.scrollingText highlight {
+    color: red;
+}
+
 .updateMessage .scrollingText {
     margin-top: 6.7px;
     display: inline-block;

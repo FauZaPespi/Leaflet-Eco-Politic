@@ -1,75 +1,82 @@
 <?php
-// Toutes les requêtes ont été générées en partie par ChatGPT.
+// Définir le chemin du fichier JSON des rapports
+define('REPORTS_FILE', 'files/json/reports.json');
 
-
-// Connexion à la base de données SQLite
-$db = new PDO('sqlite:files/database/reports.db');
-
-// Récupération et filtrage des données postées
+// Récupérer et assainir les données envoyées par POST
 $country = filter_input(INPUT_POST, 'countryWrong', FILTER_UNSAFE_RAW);
 $problemType = filter_input(INPUT_POST, 'problem', FILTER_UNSAFE_RAW);
 $newData = filter_input(INPUT_POST, 'newData', FILTER_UNSAFE_RAW);
-//$ipAddress = strval(rand()) . $_SERVER['REMOTE_ADDR'];
-$ipAddress = $_SERVER['REMOTE_ADDR']; // L'autre ligne permettait de générer une adresse aléatoire, utile pour le débogage...
+$ipAddress = $_SERVER['REMOTE_ADDR'];
+$ipAddress = rand() . $_SERVER['REMOTE_ADDR'];  // Ajouter un nombre aléatoire à l'adresse IP
 
-// Vérification du nombre de rapports par IP pour le pays
+// Charger les rapports existants depuis le fichier JSON
+if (file_exists(REPORTS_FILE)) {
+    $data = json_decode(file_get_contents(REPORTS_FILE), true);
+    if (!is_array($data)) {
+        $data = ["reports" => [], "massReports" => []];  // Initialiser si le fichier est mal formaté
+    } else {
+        // S'assurer que les clés "reports" et "massReports" existent sous forme de tableaux
+        $data["reports"] = $data["reports"] ?? [];
+        $data["massReports"] = $data["massReports"] ?? [];
+    }
+} else {
+    $data = ["reports" => [], "massReports" => []];  // Si le fichier n'existe pas, initialiser des tableaux vides
+}
+
+// Vérifier le nombre de rapports par IP pour le pays sélectionné
 if ($country && $problemType) {
-    $checkStmt = $db->prepare("SELECT COUNT(*) FROM reports WHERE ip = :ip AND country = :country");
-    $checkStmt->execute([':ip' => $ipAddress, ':country' => $country]);
-    $ipReportCount = $checkStmt->fetchColumn();
+    // Compter les rapports existants de cette IP pour le pays
+    $ipReportCount = array_reduce($data["reports"], function ($count, $report) use ($ipAddress, $country) {
+        return $count + (($report['ip'] === $ipAddress && $report['country'] === $country) ? 1 : 0);
+    }, 0);
 
     if ($ipReportCount >= 3) {
         // Limite atteinte pour ce pays
         echo "<div class='error'>Vous avez atteint la limite de 3 rapports pour ce pays.</div>";
     } else {
-        // Insertion du nouveau rapport
-        $stmt = $db->prepare("INSERT INTO reports (ip, country, problem_type, old_name, new_name) VALUES (:ip, :country, :problemType, :oldName, :newData)");
-        $stmt->execute([
-            ':ip' => $ipAddress,
-            ':country' => $country,
-            ':problemType' => $problemType,
-            ':oldName' => '',
-            ':newData' => $newData
-        ]);
+        // Ajouter le nouveau rapport
+        $data["reports"][] = [
+            "ip" => $ipAddress,
+            "country" => $country,
+            "problem_type" => $problemType,
+            "old_name" => '',  // Nom ancien, ici vide
+            "new_name" => $newData  // Nouveau nom ou nouvelle donnée
+        ];
 
         echo "<div class='thanksU'>Merci pour votre rapport !</div>";
 
-        // Mise à jour des statistiques de rapports pour le pays
-        $countStmt = $db->prepare("SELECT COUNT(*) FROM reports WHERE country = :country");
-        $countStmt->execute([':country' => $country]);
-        $countryReportCount = $countStmt->fetchColumn();
-
-        if ($countryReportCount >= 5) {
-            $updateMassReportStmt = $db->prepare("
-                INSERT INTO massReport (country, report_count, name_issue_count, dataEP_issue_count)
-                VALUES (:country, :reportCount, CASE WHEN :problemType = 'name' THEN 1 ELSE 0 END, CASE WHEN :problemType = 'dataEP' THEN 1 ELSE 0 END)
-                ON CONFLICT(country) DO UPDATE SET
-                    report_count = report_count + 1,
-                    name_issue_count = CASE WHEN :problemType = 'name' THEN name_issue_count + 1 ELSE name_issue_count END,
-                    dataEP_issue_count = CASE WHEN :problemType = 'dataEP' THEN dataEP_issue_count + 1 ELSE dataEP_issue_count END
-            ");
-            $updateMassReportStmt->execute([
-                ':country' => $country,
-                ':reportCount' => $countryReportCount,
-                ':problemType' => $problemType
-            ]);
+        // Mettre à jour les statistiques des rapports pour le pays
+        if (!isset($data["massReports"][$country])) {
+            $data["massReports"][$country] = ["report_count" => 0, "name_issue_count" => 0, "dataEP_issue_count" => 0];
         }
+
+        // Incrémenter les compteurs selon le type de problème
+        $data["massReports"][$country]["report_count"] += 1;
+        if ($problemType === "name") {
+            $data["massReports"][$country]["name_issue_count"] += 1;
+        } elseif ($problemType === "dataEP") {
+            $data["massReports"][$country]["dataEP_issue_count"] += 1;
+        }
+
+        // Sauvegarder les données mises à jour dans le fichier JSON
+        file_put_contents(REPORTS_FILE, json_encode($data, JSON_PRETTY_PRINT));
     }
 }
 
-// Récupération des statistiques de rapports pour tous les pays
-$problemCountStmt = $db->prepare("
-    SELECT country, name_issue_count, dataEP_issue_count 
-    FROM massReport
-");
-$problemCountStmt->execute();
-$allIssueCounts = $problemCountStmt->fetchAll(PDO::FETCH_ASSOC);
+// Trouver le pays avec le plus grand nombre de rapports
+$countryWithMostReports = null;
+$highestReportCount = 0;
 
-// Affichage d'un message si des pays nécessitent une attention particulière
-foreach ($allIssueCounts as $issueCounts) {
-    if (($issueCounts['name_issue_count'] >= 3) || ($issueCounts['dataEP_issue_count'] >= 3)) {
-        echo "<div class='updateMessage'><div class='scrollingText'>Les données pour le pays {$issueCounts['country']} nécessitent une attention particulière en raison de rapports récurrents.</div></div>";
+foreach ($data["massReports"] as $countryName => $issueCounts) {
+    if ($issueCounts['report_count'] > $highestReportCount) {
+        $highestReportCount = $issueCounts['report_count'];
+        $countryWithMostReports = $countryName;
     }
+}
+
+// Afficher un message d'attention pour le pays ayant le plus de rapports, si nécessaire
+if ($countryWithMostReports && $highestReportCount >= 3) {
+    echo "<div class='updateMessage'><div class='scrollingText'>Les données pour le pays <highlight>{$countryWithMostReports}</highlight> nécessitent une attention particulière en raison de rapports récurrents.</div></div>";
 }
 ?>
 
@@ -84,6 +91,7 @@ foreach ($allIssueCounts as $issueCounts) {
     <script src="files/js/lib/leaflet.js"></script>
     <script src="files/js/lib/leaflet.ajax.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="files/css/base.css">
+    <link rel="shortcut icon" href="files/media/SEP_icon.png" type="image/x-icon">
     <script src="files/js/index.js" defer></script>
 </head>
 
@@ -94,13 +102,13 @@ foreach ($allIssueCounts as $issueCounts) {
     <div id="map"></div>
     <div class="backgroundBlurlegend"></div>
     <div id="state-legend" class="legend">
-        <h4>Eco-Politic System</h4>
-        <div><span style="background-color: #1f77b4"></span> Capitalism</div>
-        <div><span style="background-color: #ff7f0e"></span> Socialism</div>
-        <div><span style="background-color: #2ca02c"></span> Communism</div>
-        <div><span style="background-color: #d62728"></span> Fascism</div>
+        <h4>Système Eco-Politique</h4>
+        <div><span style="background-color: #1f77b4"></span> Capitalisme</div>
+        <div><span style="background-color: #ff7f0e"></span> Socialisme</div>
+        <div><span style="background-color: #2ca02c"></span> Communisme</div>
+        <div><span style="background-color: #d62728"></span> Fascisme</div>
         <div><span style="background-color: #310d94"></span> Monarchie</div>
-        <div><span style="background-color: #9467bd"></span> Mixed Economy</div>
+        <div><span style="background-color: #9467bd"></span> Inconnu</div>
     </div>
     <div class="backgroundBlur"></div>
     <div class="askWrong">
@@ -108,7 +116,6 @@ foreach ($allIssueCounts as $issueCounts) {
             <select name="countryWrong" id="countryWrong">
                 <?php
                 $countries = json_decode(file_get_contents("files/json/2024/data.json"), true);
-
                 $selectedCountry = filter_input(INPUT_POST, 'countryWrong', FILTER_UNSAFE_RAW);
 
                 foreach ($countries as $country => $system) {
@@ -120,11 +127,7 @@ foreach ($allIssueCounts as $issueCounts) {
             <select name="problem" id="problem">
                 <?php
                 $selectedProblem = filter_input(INPUT_POST, 'problem', FILTER_UNSAFE_RAW);
-
-                $problems = [
-                    'name' => 'Wrong Name',
-                    'dataEP' => 'Wrong Eco-Politic data'
-                ];
+                $problems = ['name' => 'Nom incorrect', 'dataEP' => 'Données Eco-Politique incorrectes'];
 
                 foreach ($problems as $key => $label) {
                     $isSelected = ($key === $selectedProblem) ? 'selected' : '';
@@ -132,12 +135,10 @@ foreach ($allIssueCounts as $issueCounts) {
                 }
                 ?>
             </select>
-            <input type="text" name="newData" id="newData" placeholder="Enter new data" value="<?php echo filter_input(INPUT_POST, 'newData', FILTER_UNSAFE_RAW); ?>">
-            <button type="submit">Report Problem</button>
+            <input type="text" name="newData" id="newData" placeholder="Entrez les nouvelles données" value="<?php echo filter_input(INPUT_POST, 'newData', FILTER_UNSAFE_RAW); ?>">
+            <button type="submit">Signaler le problème</button>
         </form>
     </div>
-
-
 </body>
 
 </html>
